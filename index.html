@@ -293,7 +293,7 @@ body[data-screen="scr-game"] .review-tag{display:none}
 .btn.kakao{background:#FEE500;color:#191919;border:2px solid #FEE500;font-weight:800;box-shadow:0 0 0 3px rgba(254,229,0,.25)}
 .btn.kakao:hover{background:#ffeb3b;border-color:#ffeb3b;color:#000}
 .ng-mark{font-family:'Rubik Mono One',sans-serif;color:#ef4444;border:4px solid #ef4444;border-radius:8px;padding:0 .18em;display:inline-block;transform:rotate(-8deg);font-size:.82em;line-height:1.1;margin-right:.25em;vertical-align:.08em}
-.gate-msg{margin:12px 0 0;font-size:14px;line-height:1.6;color:#f5c542;font-weight:600}
+.gate-msg{white-space:pre-line;margin:12px 0 0;font-size:14px;line-height:1.6;color:#f5c542;font-weight:600}
 #btnStart:disabled{opacity:.55;cursor:not-allowed}
 </style>
 
@@ -1427,7 +1427,7 @@ function canPlay(){ var ph=eventPhase(); return ph==='open'||(ph==='after'&&star
 function welcomeLabel(){ var b=$('btnStart'), g=$('gateMsg'), ph=eventPhase();
   b.textContent=mySubmission?'내 결과 보기':(player&&(state.start||state.found.length)?'이어서 하기':'게임 시작');
   if(!mySubmission&&!canPlay()){ b.disabled=true; b.textContent=ph==='before'?'11월 18일(수) 오픈':'이벤트 마감'; g.hidden=false;
-    g.textContent=ph==='before'?'이벤트는 11월 18일(수) 0시부터 11월 27일(금) 24시까지 참여할 수 있어요.':'이벤트가 마감되었어요. (11월 27일(금) 24시 마감) 참여해 주셔서 감사합니다.'; }
+    g.textContent=ph==='before'?'이벤트는 11월 18일(수) 0시부터\n11월 27일(금) 24시까지 참여할 수 있어요.':'이벤트가 마감되었어요. (11월 27일(금) 24시 마감)\n참여해 주셔서 감사합니다.'; }
   else { b.disabled=false; g.hidden=true; } }
 setInterval(function(){ if($('scr-welcome').classList.contains('active')) welcomeLabel(); },30000);
 $('btnStart').addEventListener('click',function(){
