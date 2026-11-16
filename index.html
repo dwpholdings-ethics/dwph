@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ko">
 <head>
+<script>(function(){ if(/[?&]reset(=|&|$)/.test(location.search)){ try{ ['ngGame.v14','ngGame.v14.joined','ngGame.sub.v1','ngGame.player.v1'].forEach(function(k){ localStorage.removeItem(k); }); }catch(e){} location.replace(location.pathname); } })();</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0a0f">
@@ -292,6 +293,8 @@ body[data-screen="scr-game"] .review-tag{display:none}
 .btn.kakao{background:#FEE500;color:#191919;border:2px solid #FEE500;font-weight:800;box-shadow:0 0 0 3px rgba(254,229,0,.25)}
 .btn.kakao:hover{background:#ffeb3b;border-color:#ffeb3b;color:#000}
 .ng-mark{font-family:'Rubik Mono One',sans-serif;color:#ef4444;border:4px solid #ef4444;border-radius:8px;padding:0 .18em;display:inline-block;transform:rotate(-8deg);font-size:.82em;line-height:1.1;margin-right:.25em;vertical-align:.08em}
+.gate-msg{margin:12px 0 0;font-size:14px;line-height:1.6;color:#f5c542;font-weight:600}
+#btnStart:disabled{opacity:.55;cursor:not-allowed}
 </style>
 
 </head>
@@ -306,6 +309,7 @@ body[data-screen="scr-game"] .review-tag{display:none}
     <p class="subtitle">송년회부터 연말 대청소, 보고서 마감까지<br>연말 곳곳에 숨어 있는 NG 장면을 찾아 주세요.</p>
     <div class="chips"><span id="chipScenes">장면 3개</span><span id="chipNg">NG 12개</span><span id="chipMax">최대 190점</span></div>
     <button type="button" class="btn primary big" id="btnStart">게임 시작</button>
+    <p class="gate-msg" id="gateMsg" role="status" hidden></p>
     <div class="btn-row"><button type="button" class="btn text" id="btnHow" aria-expanded="false">게임 방법 보기</button></div>
     <ol class="howto" id="howto" hidden>
       <li><b>1</b><span>그림에서 NG 장면을 찾아 클릭해요. 맞으면 O, 엉뚱한 곳을 누르면 X 표시만 나오고 점수는 깎이지 않아요.</span></li>
@@ -1386,6 +1390,7 @@ function buildRec(){
 }
 function submitNow(){
   if(mySubmission||submitting||dbStatus!=='ready'||!player||!complete()){ updateSubmitUI(); return; }
+  if(eventPhase()==='after'&&!startedInTime()){ $('submitStatus').className='msg err'; $('submitStatus').textContent='이벤트가 마감되어 응모할 수 없어요. (11월 27일(금) 24시 마감)'; $('btnRetry').hidden=true; return; }
   var rec=buildRec(); submitting=true; updateSubmitUI();
   function attempt(retry){
     return fetch(SUBMIT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(rec)}).then(function(){
@@ -1406,6 +1411,7 @@ function goFinish(){
   show('scr-result'); submitNow();
 }
 function enterGame(){
+  if(eventPhase()==='open'){ try{ if(!localStorage.getItem(KEY+'.joined')) localStorage.setItem(KEY+'.joined',String(Date.now())); }catch(e){} }
   if(complete()){ goFinish(); return; }
   var first=0; while(first<SCENES.length-1&&sceneDone(SCENES[first])) first++;
   if(!complete()&&state.scene!==first){ state.scene=first; state.view='main'; }
@@ -1413,9 +1419,20 @@ function enterGame(){
   if(state.found.length){ say('o','이전에 찾은 '+state.found.length+'개가 저장되어 있어요. 이어서 찾아 보세요.'); leftHint(); }
   else if(window.innerHeight>window.innerWidth&&window.innerWidth<700) say('','휴대폰을 가로로 돌리면 그림을 더 크게 볼 수 있어요. 그림에서 NG를 찾아 클릭해 보세요.');
 }
-function welcomeLabel(){ $('btnStart').textContent=mySubmission?'내 결과 보기':(player&&(state.start||state.found.length)?'이어서 하기':'게임 시작'); }
+var EVENT_OPEN=Date.UTC(2026,10,17,15,0,0), EVENT_CLOSE=Date.UTC(2026,10,27,15,0,0);
+function eventPhase(){ var t=Date.now(); return t<EVENT_OPEN?'before':(t>=EVENT_CLOSE?'after':'open'); }
+function joinedAt(){ var j=0; try{ j=+localStorage.getItem(KEY+'.joined')||0; }catch(e){} return j||state.start||0; }
+function startedInTime(){ var j=joinedAt(); return !!(j&&j>=EVENT_OPEN&&j<EVENT_CLOSE); }
+function canPlay(){ var ph=eventPhase(); return ph==='open'||(ph==='after'&&startedInTime()); }
+function welcomeLabel(){ var b=$('btnStart'), g=$('gateMsg'), ph=eventPhase();
+  b.textContent=mySubmission?'내 결과 보기':(player&&(state.start||state.found.length)?'이어서 하기':'게임 시작');
+  if(!mySubmission&&!canPlay()){ b.disabled=true; b.textContent=ph==='before'?'11월 18일(수) 오픈':'이벤트 마감'; g.hidden=false;
+    g.textContent=ph==='before'?'이벤트는 11월 18일(수) 0시부터 11월 27일(금) 24시까지 참여할 수 있어요.':'이벤트가 마감되었어요. (11월 27일(금) 24시 마감) 참여해 주셔서 감사합니다.'; }
+  else { b.disabled=false; g.hidden=true; } }
+setInterval(function(){ if($('scr-welcome').classList.contains('active')) welcomeLabel(); },30000);
 $('btnStart').addEventListener('click',function(){
   if(mySubmission){ show('scr-result'); updateSubmitUI(); return; }
+  if(!canPlay()){ welcomeLabel(); return; }
   if(player) enterGame(); else { show('scr-register'); $('company').focus(); }
 });
 $('btnHow').addEventListener('click',function(){ var h=$('howto'); h.hidden=!h.hidden; this.setAttribute('aria-expanded',String(!h.hidden)); this.textContent=h.hidden?'게임 방법 보기':'게임 방법 닫기'; });
