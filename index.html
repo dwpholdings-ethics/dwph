@@ -1433,7 +1433,7 @@ function enterGame(){
   if(state.found.length){ say('o','이전에 찾은 '+state.found.length+'개가 저장되어 있어요. 이어서 찾아 보세요.'); leftHint(); }
   else if(window.innerHeight>window.innerWidth&&window.innerWidth<700) say('','휴대폰을 가로로 돌리면 그림을 더 크게 볼 수 있어요. 그림에서 NG를 찾아 클릭해 보세요.');
 }
-var EVENT_OPEN=Date.UTC(2026,10,17,15,0,0), EVENT_CLOSE=Date.UTC(2026,10,27,15,0,0);
+var EVENT_OPEN=0, EVENT_CLOSE=Date.UTC(2026,10,27,15,0,0);
 function eventPhase(){ var t=Date.now(); return t<EVENT_OPEN?'before':(t>=EVENT_CLOSE?'after':'open'); }
 function joinedAt(){ var j=0; try{ j=+localStorage.getItem(KEY+'.joined')||0; }catch(e){} return j||state.start||0; }
 function startedInTime(){ var j=joinedAt(); return !!(j&&j>=EVENT_OPEN&&j<EVENT_CLOSE); }
